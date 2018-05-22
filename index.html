@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" href="/thirdpart/jquery/jquery.mobile-1.3.2.min.css">	
+		<script type="text/javascript" src="/thirdpart/jquery/jquery-2.1.3.min.js"></script>
+		<script type="text/javascript" src="/thirdpart/jquerymobile/jquery.mobile-1.3.2.min.js"></script>
+		<script type="text/javascript" src="/thirdpart/jquery/ajaxfileupload.js"></script>
+		<script type="text/javascript" src="/kmclient/kmclient_km.js"></script>
+		<script type="text/javascript" src="js/kmwebdataserverparameters.js"></script>
+		<!--加密用-->
+		<script type="text/javascript" src="/thirdpart/cryptico-master/jsbn.js"></script>
+		<script type="text/javascript" src="/thirdpart/cryptico-master/random.js"></script>
+		<script type="text/javascript" src="/thirdpart/cryptico-master/hash.js"></script>
+		<script type="text/javascript" src="/thirdpart/cryptico-master/rsa.js"></script>
+		<script type="text/javascript" src="/thirdpart/cryptico-master/aes.js"></script>
+		<script type="text/javascript" src="/thirdpart/cryptico-master/api.js"></script>
+		<script type="text/javascript" src="/thirdpart/cryptico-master/cryptico.js"></script>
+		<script type="text/javascript" src="/thirdpart/cryptico-master/cryptico.min.js"></script>
+		<script>
+		var g_KmServer;
+		$(document).on("pageinit", "#pageone",function() {
+			if (localStorage.rmbPassword) {
+				//jquery mobile中如果通过js对checkbox状态进行修改的话，必须进行刷新才行
+				$("#issavepw").attr('checked', true).checkboxradio("refresh");
+				$("#username").val(localStorage.save_username);
+				$("#password").val(localStorage.save_password);
+			} else {
+				$("#username").val("user1");
+				$("#password").val("123");
+			}
+		});
+		function LoginAction() {
+			var username = $("#username").val();
+			var password = $("#password").val();
+			if (username == "" || password == "") {
+				alert("用户名或者密码不能为空，请重新输入！");
+				return;
+			}
+			if ((/[\u4e00-\u9fa5]+/).test(password)) {
+				alert("密码不能含有汉字！");
+				return;
+			}
+			if (typeof KMv1 == "undefined") {
+				alert("登录失败，数据后台服务没有启动！");
+				return;
+			}
+			g_KmServer = new KMv1.KmServer(kmserver1, "kmserver1");
+			g_KmServer.KmLogin(username, password,function(result) {
+				if (typeof result == "object") {
+					if (typeof result.responseText != "undefined") {
+						alert(result.responseText);
+					} else {
+						alert("未定义错误");
+					}
+				} else {
+					var ret = result.split(":");
+					if (ret[0] == "failed") {
+						alert(ret[1]);
+					} else {
+						var status = document.getElementById("issavepw").checked;
+						if (status) {
+							localStorage.rmbPassword = true;
+							localStorage.save_username = username;
+							localStorage.save_password = password;
+						} else {
+							localStorage.rmbPassword = false;
+							localStorage.save_username = "";
+							localStorage.save_password = "";
+						}
+						g_KmServer.SaveKmServer();
+						window.location = "html/mainmenu.html";
+					}
+				}
+			});
+		}
+		</script>
+	</head>
+	<body>
+		<div data-role="page" id="pageone">
+			<div data-role="header" data-theme="b" data-position="fixed" data-tap-toggle="false">
+				<h1>KingMobile</h1>
+			</div>
+			<div data-role="content" id="divcontent">
+				<p style="text-align: center;" size="7"><b>KingMobile V1.0示例</b></p>
+				<div data-role="fieldcontain">
+					<label for="username" style="font-weight:bold;color:DarkBlue;">用户名：</label>
+					<input type="text" name="username" id="username" placeholder="输入用户名...">
+				</div>
+				<div data-role="fieldcontain">
+					<label for="password" style="font-weight:bold;color:DarkBlue;">密码：</label>
+					<input type="password" name="password" id="password" placeholder="输入密码...">
+				</div>
+				<div data-role="fieldcontain">
+					<label for="issavepw">保存密码</label>
+					<input type="checkbox"  name="issavepw" id="issavepw" value="savepw" checked>
+				</div> 			        
+				<input type="submit" id="connectserverbtn" value="登录" onclick="LoginAction()">
+			</div>
+			<div data-role="fieldcontain">
+				<div style="height:80px">
+					<img src="images/yklogo.png" width="100%" height="100%" >
+				</div>
+			</div>
+			<div data-role="footer" id="divfooter" data-theme="b" data-position="fixed" data-tap-toggle="false">
+				<P id = "message1"></P>
+			</div>
+		</div>
+	</body>
+</html>
